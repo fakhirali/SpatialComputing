@@ -14,8 +14,7 @@ CAMERA_H = 2160
 DOT_RADIUS_PX = 6
 SNAP_RADIUS = 40
 SNAP_BRIGHT_THRESH = 200
-ZOOM_BOX = 80
-ZOOM_SCALE = 6
+
 
 def snap_to_bright_centroid(gray, x, y):
     h, w = gray.shape
@@ -118,28 +117,6 @@ def calibrate_projector(proj_w, proj_h, display_idx=0):
                            (0, 0, 255), markerType=cv2.MARKER_CROSS, markerSize=14, thickness=2)
             cv2.putText(display, str(i), (int(pt[0]) + 10, int(pt[1]) - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-
-        if last_click is not None and current_idx > 0 and current_idx <= len(cam_pts):
-            i = current_idx - 1
-            cx, cy = cam_pts[i]
-            x0, y0 = max(0, int(cx) - ZOOM_BOX // 2), max(0, int(cy) - ZOOM_BOX // 2)
-            x1, y1 = x0 + ZOOM_BOX, y0 + ZOOM_BOX
-            if x1 <= display.shape[1] and y1 <= display.shape[0]:
-                patch = last_gray[y0:y1, x0:x1]
-                zoom = cv2.resize(patch, (ZOOM_BOX * ZOOM_SCALE, ZOOM_BOX * ZOOM_SCALE),
-                                  interpolation=cv2.INTER_NEAREST)
-                zoom = cv2.cvtColor(zoom, cv2.COLOR_GRAY2BGR)
-                lx, ly = int(cx) - x0, int(cy) - y0
-                lx, ly = lx * ZOOM_SCALE, ly * ZOOM_SCALE
-                cv2.line(zoom, (lx - 30, ly), (lx + 30, ly), (0, 0, 255), 1)
-                cv2.line(zoom, (lx, ly - 30), (lx, ly + 30), (0, 0, 255), 1)
-                cv2.rectangle(zoom, (0, 0), (zoom.shape[1] - 1, zoom.shape[0] - 1), (0, 255, 0), 2)
-                zx, zy = 20, 20
-                display[zy:zy + zoom.shape[0], zx:zx + zoom.shape[1]] = zoom
-                dx, dy = snap_offsets[i]
-                info = f"corner {i}: snap dx={dx:+.2f} dy={dy:+.2f}"
-                cv2.putText(display, info, (zx, zy + zoom.shape[0] + 25),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
 
         if current_idx < len(proj_pts):
             cv2.putText(display, f"click corner {current_idx}/{len(proj_pts)}",
